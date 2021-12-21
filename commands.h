@@ -1,0 +1,10 @@
+// All commands are here
+#include "echo.h"
+#include "tee.h"
+#include "cat.h"
+#include "cp.h"
+#include "cd.h"
+#include "pwd.h"
+#include "grep.h"
+#include "diff.h"
+#include "pipe.h"

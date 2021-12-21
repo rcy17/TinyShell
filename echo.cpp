@@ -2,10 +2,10 @@
 
 #include "terminal.h"
 
-void printHelp()
+static void printHelp()
 {
-    strcat(gTerm.strout, "Usage: echo [--help] [-n] [string] ...\n");
-    strcat(gTerm.strout, "  --help display this help and exit\n");
+    strcat(gTerm.strout, "Usage: echo [--help] [-n] [word [word ...]]\n");
+    strcat(gTerm.strout, "  --help show this help and exit\n");
     strcat(gTerm.strout, "  -n do not output the trailing newline\n");
 }
 

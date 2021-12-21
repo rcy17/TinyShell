@@ -5,8 +5,8 @@ using namespace std;
 #include "shell.h"
 #include "terminal.h"
 #include "banner.h"
-#include "echo.h"
 #include "color.h"
+#include "commands.h"
 
 Terminal gTerm;
 
@@ -61,13 +61,17 @@ void run()
         {
             doEcho(argc, argv);
         }
+        else if (strcmp(argv[0], "tee") == 0)
+        {
+            doTee(argc, argv);
+        }
         else if (strcmp(argv[0], "exit") == 0 || strcmp(argv[0], "quit") == 0)
         {
             break;
         }
         else
         {
-            cout << "Error: Unknow command " << argv[0] << endl;
+            cerr << "Error: Command " << argv[0] << " not found" << endl;
         }
         cout << gTerm.strout;
     }
