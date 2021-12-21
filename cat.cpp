@@ -8,7 +8,7 @@ using namespace std;
 #include "utils.h"
 
 static void printHelp() {
-    strcat(gTerm.strout, "Usage: cat [--help] [-b] [-E] [-n] [-s] [file [file ...]]\n");
+    strcat(gTerm.strout, "Usage: cat [--help] [-b] [-E] [-n] [-s] [FILE [FILE ...]]\n");
     strcat(gTerm.strout, "  --help show this help and exit\n");
     strcat(gTerm.strout, "  -b number nonempty output lines, overrides -n\n");
     strcat(gTerm.strout, "  -E display $ at end of each line\n");

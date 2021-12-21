@@ -10,7 +10,7 @@ using namespace std;
 
 static void printHelp()
 {
-    strcat(gTerm.strout, "Usage: tee [--help] [-a] [filename [filename ...]]\n");
+    strcat(gTerm.strout, "Usage: tee [--help] [-a] [FILE [FILE ...]]\n");
     strcat(gTerm.strout, "  --help show this help and exit\n");
     strcat(gTerm.strout, "  -a append to the given FILEs, do not overwrite\n");
 }
@@ -41,7 +41,7 @@ void doTee(int argc, char *argv[])
             cout << path << endl;
             ofstream fout(path);
             if (append)
-                fout.open(path, ios_base::app);
+                fout.open(path, ofstream::app);
             else
                 fout.open(path);
             if (fout.fail())
