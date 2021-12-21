@@ -2,7 +2,6 @@
 #include <cstring>
 #include <cassert>
 #include <fstream>
-#include <cerrno>
 
 #include "terminal.h"
 #include "utils.h"
@@ -36,18 +35,17 @@ void doTee(int argc, char *argv[])
             char path[1024];
             getFullPath(argv[i], path);
             cout << path << endl;
-            ofstream file(path);
+            ofstream fout(path);
             if (append)
-                file.open(path, ios_base::app);
+                fout.open(path, ios_base::app);
             else
-                file.open(path);
-            if (file.fail())
+                fout.open(path);
+            if (fout.fail())
             {
-                cerr << "Fail to open '" << path << "': " << strerror(errno) << endl;
-                return;
+                return reportFileOpenFailure(path);
             }
-            file.write(gTerm.strin, strlen(gTerm.strin));
-            file.close();
+            fout.write(gTerm.strin, strlen(gTerm.strin));
+            fout.close();
         }
     }
     strcpy(gTerm.strin, gTerm.strout);

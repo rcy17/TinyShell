@@ -1,10 +1,11 @@
-// All commands are here
-#include "echo.h"
-#include "tee.h"
-#include "cat.h"
-#include "cp.h"
-#include "cd.h"
-#include "pwd.h"
-#include "grep.h"
-#include "diff.h"
-#include "pipe.h"
+#pragma once
+// All command definitions are here
+void doEcho(int argc, char *argv[]);
+void doTee(int argc, char *argv[]);
+void doCat(int argc, char *argv[]);
+void doCp(int argc, char *argv[]);
+void doCd(int argc, char *argv[]);
+void doPwd(int argc, char *argv[]);
+void doGrep(int argc, char *argv[]);
+void doDiff(int argc, char *argv[]);
+void doPipe(int argc, char *argv[]);
