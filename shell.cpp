@@ -12,17 +12,17 @@ Terminal gTerm;
 
 void welcome()
 {
-    cout << banner << endl;
+    cout << COLOR_CYAN << banner << COLOR_NONE << endl;
     cout << COLOR_YELLOW << "Welcome to TinyShell!" << COLOR_NONE << endl;
 }
 
 void init()
 {
-    cout << "Machine Name: ";
+    cout << COLOR_MAGENTA << "Machine Name: " << COLOR_NONE;
     cin >> gTerm.mach;
-    cout << "Root Directory: ";
+    cout << COLOR_MAGENTA << "Root Directory: " << COLOR_NONE;
     cin >> gTerm.root;
-    cout << "Login: ";
+    cout << COLOR_MAGENTA << "Login: " << COLOR_NONE;
     cin >> gTerm.user;
     gTerm.strin[0] = '\0';
     gTerm.strout[0] = '\0';
@@ -44,6 +44,8 @@ void run()
     static char *argv[MAXARGV];
     char line[MAXLINE] = "";
     int argc;
+    // Read the '\n' after inputting user
+    cin.getline(line, MAXLINE);
     while (true)
     {
         printPrefix();
