@@ -31,7 +31,7 @@ void copyFileToStrout(const char * src) {
 }
 
 void copyStrinToFile(const char * dst) {
-    ofstream fout(dst, ifstream::binary);
+    ofstream fout(dst, ofstream::binary);
     if (fout.fail()) {
         return reportFileOpenFailure(dst);
     }
@@ -44,7 +44,7 @@ void copyFileToFile(const char * src, const char * dst) {
     if (fin.fail()) {
         return reportFileOpenFailure(src);
     }
-    ofstream fout(dst, ifstream::binary);
+    ofstream fout(dst, ofstream::binary);
     if (fout.fail()) {
         return reportFileOpenFailure(dst);
     }
@@ -53,9 +53,9 @@ void copyFileToFile(const char * src, const char * dst) {
     fout.close();
 }
 
-void doCopy(int argc, char *argv[]) {
+void doCp(int argc, char *argv[]) {
     int notOverwrite = 0;
-    if (strcmp(argv[1], "--help")) return printHelp();
+    if (strcmp(argv[1], "--help") == 0) return printHelp();
     if (argc < 3 || argc > 4) return printHelp();
     if (argc == 3 && strcmp(argv[1], "-n") == 0) return printHelp();
     if (argc == 4) {
@@ -67,9 +67,9 @@ void doCopy(int argc, char *argv[]) {
     if (strcmp(argv[argc - 2], "-") == 0 && strcmp(argv[argc - 1], "-") == 0) return;
     getFullPath(argv[argc - 2], src);
     getFullPath(argv[argc - 1], dst);
-    if (strcmp(argv[argc - 1], "-")) return copyFileToStrout(src);
+    if (strcmp(argv[argc - 1], "-") == 0) return copyFileToStrout(src);
     if (notOverwrite && fileExists(dst)) return;
-    if (strcmp(argv[argc - 2], "-")) return copyStrinToFile(dst);
+    if (strcmp(argv[argc - 2], "-") == 0) return copyStrinToFile(dst);
     return copyFileToFile(src, dst);
 }
 
