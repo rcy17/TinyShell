@@ -6,13 +6,14 @@ using namespace std;
 #include "terminal.h"
 #include "banner.h"
 #include "echo.h"
+#include "color.h"
 
 Terminal gTerm;
 
 void welcome()
 {
     cout << banner << endl;
-    cout << "Welcome to TinyShell!" << endl;
+    cout << COLOR_YELLOW << "Welcome to TinyShell!" << COLOR_NONE << endl;
 }
 
 void init()
@@ -30,7 +31,12 @@ void init()
 
 void bye()
 {
-    cout << "Thanks for using TinyShell!" << endl;
+    cout << COLOR_YELLOW << "Thanks for using TinyShell!" << COLOR_NONE << endl;
+}
+
+void printPrefix()
+{
+    cout << COLOR_GREEN << gTerm.user << "@" << gTerm.mach << COLOR_NONE << ":" << COLOR_BLUE << gTerm.wdir << COLOR_NONE << "$ ";
 }
 
 void run()
@@ -40,9 +46,9 @@ void run()
     int argc;
     while (true)
     {
+        printPrefix();
         gTerm.strout[0] = '\0';
         gTerm.strin[0] = '\0';
-        cout << gTerm.user << "@" << gTerm.mach << ":" << gTerm.wdir << "$ ";
         cin.getline(line, MAXLINE);
         if (cin.eof())
             break;
