@@ -37,7 +37,7 @@ void doTee(int argc, char *argv[])
         else
         {
             char path[1024];
-            getFullPath(argv[i], path);
+            if (!getFullPath(argv[i], path)) return;
             cout << path << endl;
             ofstream fout(path);
             if (append)

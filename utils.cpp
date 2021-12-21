@@ -24,15 +24,65 @@ bool isFilename(const char *filename)
     return true;
 }
 
-void getFullPath(const char *filename, char *path)
+bool pathReduce(char * target) {
+    // Path should be starts with "/"
+    assert(target[0] == '/');
+    int length = strlen(target);
+    int right = 0;
+    int left = 0;
+    while (++right < length) {
+        while (right < length && target[right] != '/') right++;
+        int doMove = 0;
+        if (right - left == 1 || (right - left == 2 && target[left + 1] == '.')) 
+        {
+            // "Dir1//Dir2" or "Dir1/./Dir2" turns into "Dir1/Dir2"
+            doMove = 1;
+        }
+        if (right - left == 3 && strncmp(target + left, "/..", 3) == 0) {
+            // "Dir0/Dir1/../Dir2" turns into "Dir0/Dir2"
+            left--;
+            while (left >= 0 && target[left] != '/') left--;
+            if (left < 0) {
+                return false;
+            }
+            doMove = 1;
+        }
+        if (doMove) {
+            memmove(target + left, target + right, length - right);
+            length -= right - left;
+            right = left;
+        } else {
+            left = right;
+        }
+    }
+    // In case of cd ".." to "/", we need to add "/"
+    if (!length) target[++length] = '/';
+    // In case of cd "Dir/", we need to remove "/"
+    if (length > 1 && target[length - 1] == '/') length--; 
+    target[length] = '\0';
+    return true;
+}
+
+bool getFullPath(const char *filename, char *path)
 {
     assert(filename[0]); // filename shouldn't be empty'
-    strcpy(path, gTerm.root);
+    path[0] = '\0';
     if (filename[0] != '/')
     {
         strcat(path, gTerm.wdir);
+        strcat(path, "/");
     }
     strcat(path, filename);
+    static char temp[MAXLINE];
+    temp[0] = '\0';
+    strcpy(temp, path);
+    if (!pathReduce(temp)) {
+        cerr << "Error: can't open file '" << path << "' which is outside the root" << endl;
+        return false;
+    }
+    strcpy(path, gTerm.root);
+    strcat(path, temp);
+    return true;
 }
 
 void reportFileOpenFailure(const char * path) {

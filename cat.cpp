@@ -70,7 +70,9 @@ void doCat(int argc, char *argv[]) {
             bool lastIsBlank = false;
             int lines = 0;
             char path[1024];
-            getFullPath(argv[i], path);
+            if (!getFullPath(argv[i], path)) {
+                return;
+            }
             ifstream fin(path);
             if(fin.fail()) {
                 return reportFileOpenFailure(path);
