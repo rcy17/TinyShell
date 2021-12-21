@@ -30,6 +30,10 @@ void doTee(int argc, char *argv[])
         {
             append = 1;
         }
+        else if (strcmp(argv[i], "-") == 0) {
+            // It only matters when append is true, which will be checked later
+            strcat(gTerm.strout, gTerm.strin);
+        }
         else
         {
             char path[1024];
@@ -48,5 +52,7 @@ void doTee(int argc, char *argv[])
             fout.close();
         }
     }
-    strcpy(gTerm.strin, gTerm.strout);
+    // If append is true, then output file "-" will repeat strin into strout
+    if (append) strcat(gTerm.strout, gTerm.strin);
+    else strcpy(gTerm.strout, gTerm.strin);
 }
