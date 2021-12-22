@@ -20,6 +20,13 @@ struct GrepOptions
     bool beforeContext; // -B
     int after;          // -A<NUM>
     int before;         // -B<NUM>
+    /*
+     * This is a context status to judge if seperator line is needed between blocks:
+     *   0: initial status
+     *   1: in a continoues block
+     *   2: end a block
+     */
+    int status;
 };
 
 struct GrepMatch
@@ -43,9 +50,9 @@ static void printHelp()
 }
 
 /*
-*  Match line and pattern from the begging (may skip line's suffix)
-*  return: max match length if there is a matching
-*/
+ *  Match line and pattern from the begging (may skip line's suffix)
+ *  return: max match length if there is a matching
+ */
 int matchLine(const char *text, const char *pattern, GrepOptions *options)
 {
     if (!*pattern)
@@ -57,14 +64,16 @@ int matchLine(const char *text, const char *pattern, GrepOptions *options)
     if (pattern[0] == '*' && (p = matchLine(text + 1, pattern, options)) >= 0)
         return p + 1;
     // Try consume this pattern character then
-    if ((pattern[0] == '*' || pattern[0] == '.' || pattern[0] == text[0]) && (p = matchLine(text + 1, pattern + 1, options)) >= 0)
+    if ((pattern[0] == '*' || pattern[0] == '.' || pattern[0] == text[0] ||
+         (options->ignoreCase && toLower(pattern[0]) == toLower(text[0]))) &&
+        (p = matchLine(text + 1, pattern + 1, options)) >= 0)
         return p + 1;
     return -1;
 }
 
 /*
-*  Search a pattern match in the text
-*/
+ *  Search a pattern match in the text
+ */
 GrepMatch searchLine(const char *text, const char *pattern, GrepOptions *options)
 {
     // find a match at the beginning of each character
@@ -80,7 +89,7 @@ GrepMatch searchLine(const char *text, const char *pattern, GrepOptions *options
     return {-1, -1};
 }
 
-void safenCat(char *dest, const char *src, int n)
+void safeNCat(char *dest, const char *src, int n)
 {
     int len = strlen(dest);
     strncat(dest, src, n);
@@ -91,34 +100,25 @@ void safenCat(char *dest, const char *src, int n)
 void grepLines(const char *filename, char *pLines[], int lines, const char *pattern, GrepOptions *options)
 {
     static GrepMatch search[MAXLINES];
+    static int flag[MAXLINES];
+    memset(flag, 0, sizeof(flag));
     int matches = 0;
+    char number[16];
     for (int line = 0; line < lines; line++)
     {
         GrepMatch pos = searchLine(pLines[line], pattern, options);
         search[line] = pos;
         if (pos.start >= 0)
         {
-            if (options->count)
-            {
-                matches++;
-                continue;
-            }
-            if (options->withFilename)
-            {
-                strcat(gTerm.strout, COLOR_MAGENTA);
-                strcat(gTerm.strout, filename);
-                strcat(gTerm.strout, COLOR_CYAN);
-                strcat(gTerm.strout, ":");
-                strcat(gTerm.strout, COLOR_NONE);
-            }
-            safenCat(gTerm.strout, pLines[line], pos.start);
-            strcat(gTerm.strout, COLOR_RED);
-            safenCat(gTerm.strout, pLines[line] + pos.start, pos.stop - pos.start);
-            strcat(gTerm.strout, COLOR_NONE);
-            strcat(gTerm.strout, pLines[line] + pos.stop);
-            strcat(gTerm.strout, "\n");
+            for (int i = max(line - options->before, 0); i < line; i++)
+                flag[i] = 1;
+            for (int i = min(line + options->after, lines - 1); i > line; i--)
+                flag[i] = 1;
+            flag[line] = 1;
+            matches++;
         }
     }
+    // Only report count if options->count is true
     if (options->count)
     {
         if (options->withFilename)
@@ -129,10 +129,78 @@ void grepLines(const char *filename, char *pLines[], int lines, const char *patt
             strcat(gTerm.strout, ":");
             strcat(gTerm.strout, COLOR_NONE);
         }
-        char number[16];
         sprintf(number, "%d", matches);
         strcat(gTerm.strout, number);
         strcat(gTerm.strout, "\n");
+        return;
+    }
+
+    for (int line = 0; line < lines; line++)
+    {
+        if (!flag[line])
+        {
+            if (options->status == 1)
+                options->status = 2;
+            continue;
+        }
+        if (options->status == 2)
+        {
+
+            strcat(gTerm.strout, COLOR_CYAN);
+            strcat(gTerm.strout, "--");
+            strcat(gTerm.strout, COLOR_NONE);
+            strcat(gTerm.strout, "\n");
+        }
+        options->status = 1;
+        GrepMatch pos = search[line];
+        if (pos.start >= 0)
+        {
+            if (options->withFilename)
+            {
+                strcat(gTerm.strout, COLOR_MAGENTA);
+                strcat(gTerm.strout, filename);
+                strcat(gTerm.strout, COLOR_CYAN);
+                strcat(gTerm.strout, ":");
+                strcat(gTerm.strout, COLOR_NONE);
+            }
+            if (options->lineNumber)
+            {
+                sprintf(number, "%d", line + 1);
+                strcat(gTerm.strout, COLOR_GREEN);
+                strcat(gTerm.strout, number);
+                strcat(gTerm.strout, COLOR_CYAN);
+                strcat(gTerm.strout, ":");
+                strcat(gTerm.strout, COLOR_NONE);
+            }
+            safeNCat(gTerm.strout, pLines[line], pos.start);
+            strcat(gTerm.strout, COLOR_BRIGHT_RED);
+            safeNCat(gTerm.strout, pLines[line] + pos.start, pos.stop - pos.start);
+            strcat(gTerm.strout, COLOR_NONE);
+            strcat(gTerm.strout, pLines[line] + pos.stop);
+            strcat(gTerm.strout, "\n");
+        }
+        else
+        {
+            if (options->withFilename)
+            {
+                strcat(gTerm.strout, COLOR_MAGENTA);
+                strcat(gTerm.strout, filename);
+                strcat(gTerm.strout, COLOR_CYAN);
+                strcat(gTerm.strout, "-");
+                strcat(gTerm.strout, COLOR_NONE);
+            }
+            if (options->lineNumber)
+            {
+                sprintf(number, "%d", line + 1);
+                strcat(gTerm.strout, COLOR_GREEN);
+                strcat(gTerm.strout, number);
+                strcat(gTerm.strout, COLOR_CYAN);
+                strcat(gTerm.strout, "-");
+                strcat(gTerm.strout, COLOR_NONE);
+            }
+            strcat(gTerm.strout, pLines[line]);
+            strcat(gTerm.strout, "\n");
+        }
     }
 }
 
