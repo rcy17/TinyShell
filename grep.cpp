@@ -48,13 +48,18 @@ static void printHelp()
 */
 int matchLine(const char *text, const char *pattern, GrepOptions *options)
 {
+    if (!*pattern)
+        return 0;
+    if (!*text)
+        return -1;
     int p;
     // Greedy pattern first
     if (pattern[0] == '*' && (p = matchLine(text + 1, pattern, options)) >= 0)
-        return p;
+        return p + 1;
     // Try consume this pattern character then
-    if (pattern[0] == '*' || pattern[0] == '.' || pattern[0] == text[0])
-        return matchLine(text + 1, pattern + 1, options);
+    if ((pattern[0] == '*' || pattern[0] == '.' || pattern[0] == text[0]) && (p = matchLine(text + 1, pattern + 1, options)) >= 0)
+        return p + 1;
+    return -1;
 }
 
 /*
@@ -66,8 +71,8 @@ GrepMatch searchLine(const char *text, const char *pattern, GrepOptions *options
     for (int i = 0; i < strlen(text); i++)
     {
         int p = matchLine(text + i, pattern, options);
-        if (p >= 0)
-            return {i, p};
+        if (p > 0)
+            return {i, i + p};
         // If the pattern starts with '*', then there is no need to continue
         if (pattern[0] == '*')
             break;
@@ -75,7 +80,7 @@ GrepMatch searchLine(const char *text, const char *pattern, GrepOptions *options
     return {-1, -1};
 }
 
-void safeCat(char *dest, const char *src, int n)
+void safenCat(char *dest, const char *src, int n)
 {
     int len = strlen(dest);
     strncat(dest, src, n);
@@ -86,11 +91,18 @@ void safeCat(char *dest, const char *src, int n)
 void grepLines(const char *filename, char *pLines[], int lines, const char *pattern, GrepOptions *options)
 {
     static GrepMatch search[MAXLINES];
+    int matches = 0;
     for (int line = 0; line < lines; line++)
     {
         GrepMatch pos = searchLine(pLines[line], pattern, options);
+        search[line] = pos;
         if (pos.start >= 0)
         {
+            if (options->count)
+            {
+                matches++;
+                continue;
+            }
             if (options->withFilename)
             {
                 strcat(gTerm.strout, COLOR_MAGENTA);
@@ -99,14 +111,28 @@ void grepLines(const char *filename, char *pLines[], int lines, const char *patt
                 strcat(gTerm.strout, ":");
                 strcat(gTerm.strout, COLOR_NONE);
             }
-            safeCat(gTerm.strout, pLines[line], pos.start);
+            safenCat(gTerm.strout, pLines[line], pos.start);
             strcat(gTerm.strout, COLOR_RED);
-            safeCat(gTerm.strout, pLines[line] + pos.start, pos.stop - pos.start);
+            safenCat(gTerm.strout, pLines[line] + pos.start, pos.stop - pos.start);
             strcat(gTerm.strout, COLOR_NONE);
             strcat(gTerm.strout, pLines[line] + pos.stop);
             strcat(gTerm.strout, "\n");
         }
-        search[line] = pos;
+    }
+    if (options->count)
+    {
+        if (options->withFilename)
+        {
+            strcat(gTerm.strout, COLOR_MAGENTA);
+            strcat(gTerm.strout, filename);
+            strcat(gTerm.strout, COLOR_CYAN);
+            strcat(gTerm.strout, ":");
+            strcat(gTerm.strout, COLOR_NONE);
+        }
+        char number[16];
+        sprintf(number, "%d", matches);
+        strcat(gTerm.strout, number);
+        strcat(gTerm.strout, "\n");
     }
 }
 
@@ -134,7 +160,7 @@ bool grepFile(const char *filename, const char *pattern, GrepOptions *options)
     }
     else
     {
-        char path[MAXFILE];
+        char path[MAXLINE];
         getFullPath(filename, path);
         ifstream fin(path);
         if (!fin.is_open())
@@ -146,6 +172,13 @@ bool grepFile(const char *filename, const char *pattern, GrepOptions *options)
         temp[fin.gcount()] = '\0';
         lines = splitLines(temp, data, pLines);
     }
+    for (int i = 0; i < lines; i++)
+    {
+        // Remove each line's "\n"
+        int len = strlen(pLines[i]);
+        if (pLines[i][len - 1] == '\n')
+            pLines[i][len - 1] = '\0';
+    }
     grepLines(filename, pLines, lines, pattern, options);
     return true;
 }
@@ -153,8 +186,8 @@ bool grepFile(const char *filename, const char *pattern, GrepOptions *options)
 void doGrep(int argc, char *argv[])
 {
     GrepOptions options = {};
-    int patternIndex = 0;
-    for (int i = 0; i < argc; i++)
+    int patternIndex = argc;
+    for (int i = 1; i < argc; i++)
     {
         if (strcmp(argv[i], "--help") == 0)
         {
@@ -210,7 +243,9 @@ void doGrep(int argc, char *argv[])
             break;
         }
     }
-    if (!options.noFilename && argc - patternIndex > 1)
+    if (patternIndex == argc)
+        return printHelp();
+    if (!options.noFilename && argc - patternIndex > 2)
         options.withFilename = true;
     char pattern[MAXLINE];
     patternReduce(argv[patternIndex], pattern);
