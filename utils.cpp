@@ -54,6 +54,24 @@ char toLower(char c)
     return c | (1 << 5);
 }
 
+void strip(char *s)
+{
+    int start = 0;
+    while (isWhiteChar(s[start]))
+        start++;
+    if (!s[start])
+    {
+        // White space string
+        s[0] = '\0';
+        return;
+    }
+    int stop = strlen(s) - 1;
+    while (isWhiteChar(s[stop]))
+        stop--;
+    memmove(s, s + start, stop - start);
+    s[stop - start] = '\0';
+}
+
 bool pathReduce(char *target)
 {
     // Path should be starts with "/"

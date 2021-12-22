@@ -8,6 +8,7 @@ bool isWhiteChar(char c);
 bool isFilename(const char *filename);
 
 char toLower(char c);
+void strip(char *s);
 
 bool pathReduce(char *target);
 bool getFullPath(const char *filename, char *path);
