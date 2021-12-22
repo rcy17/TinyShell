@@ -7,7 +7,7 @@ using namespace std;
 #include "commands.h"
 #include "utils.h"
 
-void printHelp()
+static void printHelp()
 {
     strcat(gTerm.strout, "Usage: copy [OPTION] SOURCE DEST\n");
     strcat(gTerm.strout, "OPTION:\n");

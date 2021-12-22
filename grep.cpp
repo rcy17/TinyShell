@@ -28,7 +28,7 @@ struct GrepMatch
     int stop;
 };
 
-void printHelp()
+static void printHelp()
 {
     strcat(gTerm.strout, "Usage: grep [OPTION]... PATTERN [FILE]...\n");
     strcat(gTerm.strout, "OPTION:\n");
@@ -83,7 +83,7 @@ void safeCat(char *dest, const char *src, int n)
     dest[len] = '\0';
 }
 
-void grepLines(const char *filename, const char *pLines[], int lines, const char *pattern, GrepOptions *options)
+void grepLines(const char *filename, char *pLines[], int lines, const char *pattern, GrepOptions *options)
 {
     static GrepMatch search[MAXLINES];
     for (int line = 0; line < lines; line++)

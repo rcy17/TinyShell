@@ -1,3 +1,4 @@
+#pragma once
 bool isDigit(char c);
 bool isAlpha(char c);
 bool isSpecial(char c);
@@ -20,7 +21,7 @@ bool fileExists(const char *file);
 */
 int getLastLineFromString(const char *s, int lastStop, char *line = NULL);
 
-int splitLines(char *text, char *buffer, char *lines[]);
+int splitLines(const char *text, char *buffer, char *lines[]);
 
 /*
 *  Parses a string into a non-negative interger, return -1 when meeting any error

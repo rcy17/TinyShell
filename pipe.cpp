@@ -29,6 +29,10 @@ int runCommand(int argc, char *argv[])
         doCd(argc, argv);
     else if (strcmp(argv[0], "pwd") == 0)
         doPwd(argc, argv);
+    else if (strcmp(argv[0], "diff") == 0)
+        doDiff(argc, argv);
+    else if (strcmp(argv[0], "grep") == 0)
+        doGrep(argc, argv);
     else if (strcmp(argv[0], "exit") == 0 || strcmp(argv[0], "quit") == 0)
         return 1;
     else

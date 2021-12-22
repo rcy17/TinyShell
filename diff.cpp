@@ -27,7 +27,7 @@ struct Operation
     int line2;
 };
 
-void printHelp()
+static void printHelp()
 {
     strcat(gTerm.strout, "Usage: diff [OPTION]... FILE1 FILE2\n");
     strcat(gTerm.strout, "OPTION:\n");
@@ -119,7 +119,7 @@ bool readFileAll(const char *filename, char *buffer)
     return true;
 }
 
-bool compareLines(const char *pLines1[], int lines1, const char *pLines2[], int lines2, DiffOptions *options)
+bool compareLines(char *pLines1[], int lines1, char *pLines2[], int lines2, DiffOptions *options)
 {
     static int dp[MAXLINES + 1][MAXLINES + 1];
     for (int i = 0; i < lines1; i++)
@@ -211,7 +211,7 @@ bool compareFiles(const char *a, const char *b, DiffOptions *options)
     return compareLines(pLines1, lines1, pLines2, lines2, options);
 }
 
-void doGrep(int argc, char *argv[])
+void doDiff(int argc, char *argv[])
 {
     DiffOptions options = {};
     for (int i = 1; i < argc; i++)

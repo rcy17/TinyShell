@@ -1,3 +1,4 @@
+#pragma once
 #define COLOR_NONE "\e[0m"
 
 #define COLOR_RED "\e[31;1m"
