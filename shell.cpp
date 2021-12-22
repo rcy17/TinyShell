@@ -13,17 +13,17 @@ Terminal gTerm;
 
 void welcome()
 {
-    cout << COLOR_BRIGHT_CYAN << banner << COLOR_NONE << endl;
-    cout << COLOR_BRIGHT_YELLOW << "Welcome to TinyShell!" << COLOR_NONE << endl;
+    cout << COLOR_BRIGHT_BOLD_CYAN << banner << COLOR_NONE << endl;
+    cout << COLOR_BRIGHT_BOLD_YELLOW << "Welcome to TinyShell!" << COLOR_NONE << endl;
 }
 
 void init()
 {
-    cout << COLOR_BRIGHT_MAGENTA << "Machine Name: " << COLOR_NONE;
+    cout << COLOR_BRIGHT_BOLD_MAGENTA << "Machine Name: " << COLOR_NONE;
     cin >> gTerm.mach;
-    cout << COLOR_BRIGHT_MAGENTA << "Root Directory: " << COLOR_NONE;
+    cout << COLOR_BRIGHT_BOLD_MAGENTA << "Root Directory: " << COLOR_NONE;
     cin >> gTerm.root;
-    cout << COLOR_BRIGHT_MAGENTA << "Login: " << COLOR_NONE;
+    cout << COLOR_BRIGHT_BOLD_MAGENTA << "Login: " << COLOR_NONE;
     cin >> gTerm.user;
     gTerm.strin[0] = '\0';
     gTerm.strout[0] = '\0';
@@ -32,12 +32,12 @@ void init()
 
 void bye()
 {
-    cout << COLOR_BRIGHT_YELLOW << "Thanks for using TinyShell!" << COLOR_NONE << endl;
+    cout << COLOR_BRIGHT_BOLD_YELLOW << "Thanks for using TinyShell!" << COLOR_NONE << endl;
 }
 
 void printPrefix()
 {
-    cout << COLOR_BRIGHT_GREEN << gTerm.user << "@" << gTerm.mach << COLOR_NONE << ":" << COLOR_BRIGHT_BLUE << gTerm.wdir << COLOR_NONE << "$ ";
+    cout << COLOR_BRIGHT_BOLD_GREEN << gTerm.user << "@" << gTerm.mach << COLOR_NONE << ":" << COLOR_BRIGHT_BOLD_BLUE << gTerm.wdir << COLOR_NONE << "$ ";
 }
 
 void run()

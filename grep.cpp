@@ -39,12 +39,12 @@ static void printHelp()
 {
     strcat(gTerm.strout, "Usage: grep [OPTION]... PATTERN [FILE]...\n");
     strcat(gTerm.strout, "OPTION:\n");
-    strcat(gTerm.strout, "  --help Print this help and exit\n");
+    strcat(gTerm.strout, "  --help Print this help and exit.\n");
     strcat(gTerm.strout, "  -h Suppress the prefixing of file names on output.\n");
     strcat(gTerm.strout, "  -H Print the file name for each match.\n");
-    strcat(gTerm.strout, "  -i Ignore case distinctions in patterns and input data\n");
+    strcat(gTerm.strout, "  -i Ignore case distinctions in patterns and input data.\n");
     strcat(gTerm.strout, "  -n Prefix each line of output with the 1-based line number within its input file.\n");
-    strcat(gTerm.strout, "  -c Suppress normal output; instead print a count of matching lines for each  input  file.\n");
+    strcat(gTerm.strout, "  -c Suppress normal output; instead print a count of matching lines for each input file.\n");
     strcat(gTerm.strout, "  -A<NUM> Print NUM lines of trailing context after matching lines.\n");
     strcat(gTerm.strout, "  -B<NUM> Print NUM lines of leading context before matching lines.\n");
 }
@@ -97,13 +97,33 @@ void safeNCat(char *dest, const char *src, int n)
     dest[len] = '\0';
 }
 
+void printFilename(const char *filename, bool match)
+{
+
+    strcat(gTerm.strout, COLOR_MAGENTA);
+    strcat(gTerm.strout, filename);
+    strcat(gTerm.strout, COLOR_CYAN);
+    strcat(gTerm.strout, match ? ":" : "-");
+    strcat(gTerm.strout, COLOR_NONE);
+}
+
+void printLineNumber(int line, bool match)
+{
+    static char number[16];
+    sprintf(number, "%d", line + 1);
+    strcat(gTerm.strout, COLOR_GREEN);
+    strcat(gTerm.strout, number);
+    strcat(gTerm.strout, COLOR_CYAN);
+    strcat(gTerm.strout, match ? ":" : "-");
+    strcat(gTerm.strout, COLOR_NONE);
+}
+
 void grepLines(const char *filename, char *pLines[], int lines, const char *pattern, GrepOptions *options)
 {
     static GrepMatch search[MAXLINES];
     static int flag[MAXLINES];
     memset(flag, 0, sizeof(flag));
     int matches = 0;
-    char number[16];
     for (int line = 0; line < lines; line++)
     {
         GrepMatch pos = searchLine(pLines[line], pattern, options);
@@ -121,14 +141,9 @@ void grepLines(const char *filename, char *pLines[], int lines, const char *patt
     // Only report count if options->count is true
     if (options->count)
     {
+        char number[16];
         if (options->withFilename)
-        {
-            strcat(gTerm.strout, COLOR_MAGENTA);
-            strcat(gTerm.strout, filename);
-            strcat(gTerm.strout, COLOR_CYAN);
-            strcat(gTerm.strout, ":");
-            strcat(gTerm.strout, COLOR_NONE);
-        }
+            printFilename(filename, true);
         sprintf(number, "%d", matches);
         strcat(gTerm.strout, number);
         strcat(gTerm.strout, "\n");
@@ -156,24 +171,11 @@ void grepLines(const char *filename, char *pLines[], int lines, const char *patt
         if (pos.start >= 0)
         {
             if (options->withFilename)
-            {
-                strcat(gTerm.strout, COLOR_MAGENTA);
-                strcat(gTerm.strout, filename);
-                strcat(gTerm.strout, COLOR_CYAN);
-                strcat(gTerm.strout, ":");
-                strcat(gTerm.strout, COLOR_NONE);
-            }
+                printFilename(filename, true);
             if (options->lineNumber)
-            {
-                sprintf(number, "%d", line + 1);
-                strcat(gTerm.strout, COLOR_GREEN);
-                strcat(gTerm.strout, number);
-                strcat(gTerm.strout, COLOR_CYAN);
-                strcat(gTerm.strout, ":");
-                strcat(gTerm.strout, COLOR_NONE);
-            }
+                printLineNumber(line, true);
             safeNCat(gTerm.strout, pLines[line], pos.start);
-            strcat(gTerm.strout, COLOR_BRIGHT_RED);
+            strcat(gTerm.strout, COLOR_BOLD_RED);
             safeNCat(gTerm.strout, pLines[line] + pos.start, pos.stop - pos.start);
             strcat(gTerm.strout, COLOR_NONE);
             strcat(gTerm.strout, pLines[line] + pos.stop);
@@ -182,22 +184,9 @@ void grepLines(const char *filename, char *pLines[], int lines, const char *patt
         else
         {
             if (options->withFilename)
-            {
-                strcat(gTerm.strout, COLOR_MAGENTA);
-                strcat(gTerm.strout, filename);
-                strcat(gTerm.strout, COLOR_CYAN);
-                strcat(gTerm.strout, "-");
-                strcat(gTerm.strout, COLOR_NONE);
-            }
+                printFilename(filename, false);
             if (options->lineNumber)
-            {
-                sprintf(number, "%d", line + 1);
-                strcat(gTerm.strout, COLOR_GREEN);
-                strcat(gTerm.strout, number);
-                strcat(gTerm.strout, COLOR_CYAN);
-                strcat(gTerm.strout, "-");
-                strcat(gTerm.strout, COLOR_NONE);
-            }
+                printLineNumber(line, false);
             strcat(gTerm.strout, pLines[line]);
             strcat(gTerm.strout, "\n");
         }
