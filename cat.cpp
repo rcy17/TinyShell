@@ -100,7 +100,7 @@ void doCat(int argc, char *argv[])
                 return;
             }
             ifstream fin(path);
-            if (fin.fail())
+            if (!fin.is_open())
             {
                 return reportFileOpenFailure(path);
             }

@@ -10,5 +10,6 @@ struct Terminal
     char wdir[MAXLINE];   // 工作目录
     char strin[MAXFILE];  // 重定向标准输入
     char strout[MAXFILE]; // 重定向标准输出
+    bool exit;            // 终端结束运行
 };
 extern Terminal gTerm;

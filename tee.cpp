@@ -40,17 +40,16 @@ void doTee(int argc, char *argv[])
             char path[1024];
             if (!getFullPath(argv[i], path))
                 return;
-            cout << path << endl;
-            ofstream fout(path);
+            ofstream fout;
             if (append)
                 fout.open(path, ofstream::app);
             else
                 fout.open(path);
-            if (fout.fail())
+            if (!fout.is_open())
             {
                 return reportFileOpenFailure(path);
             }
-            fout.write(gTerm.strin, strlen(gTerm.strin));
+            fout << gTerm.strin;
             fout.close();
         }
     }

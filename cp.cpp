@@ -17,7 +17,7 @@ void printHelp()
 bool fileExists(const char *file)
 {
     ifstream fin(file);
-    if (fin.fail())
+    if (!fin.is_open())
         return false;
     fin.close();
     return true;
@@ -26,10 +26,11 @@ bool fileExists(const char *file)
 void copyFileToStrout(const char *src)
 {
     ifstream fin(src, ifstream::binary);
-    if (fin.fail())
+    if (!fin.is_open())
     {
         return reportFileOpenFailure(src);
     }
+    // Use read to keep all characters
     fin.read(gTerm.strout, MAXFILE);
     gTerm.strout[fin.gcount()] = '\0';
     fin.close();
@@ -38,23 +39,23 @@ void copyFileToStrout(const char *src)
 void copyStrinToFile(const char *dst)
 {
     ofstream fout(dst, ofstream::binary);
-    if (fout.fail())
+    if (!fout.is_open())
     {
         return reportFileOpenFailure(dst);
     }
-    fout.write(gTerm.strin, strlen(gTerm.strin));
+    fout << gTerm.strin;
     fout.close();
 }
 
 void copyFileToFile(const char *src, const char *dst)
 {
     ifstream fin(src, ifstream::binary);
-    if (fin.fail())
+    if (!fin.is_open())
     {
         return reportFileOpenFailure(src);
     }
     ofstream fout(dst, ofstream::binary);
-    if (fout.fail())
+    if (!fout.is_open())
     {
         return reportFileOpenFailure(dst);
     }
@@ -78,8 +79,8 @@ void doCp(int argc, char *argv[])
             return printHelp();
         notOverwrite = 1;
     }
-    char src[256];
-    char dst[256];
+    char src[MAXLINE];
+    char dst[MAXLINE];
     if (strcmp(argv[argc - 2], "-") == 0 && strcmp(argv[argc - 1], "-") == 0)
         return;
     if (!getFullPath(argv[argc - 2], src))

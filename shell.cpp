@@ -46,33 +46,16 @@ void run()
     int argc;
     // Read the '\n' after inputting user
     cin.getline(line, MAXLINE);
-    while (true)
+    while (!gTerm.exit)
     {
         printPrefix();
-        gTerm.strout[0] = '\0';
-        gTerm.strin[0] = '\0';
         cin.getline(line, MAXLINE);
         if (cin.eof())
             break;
         argc = splitArgs(line, argv);
         if (argc == 0)
             continue;
-        if (strcmp(argv[0], "echo") == 0)
-            doEcho(argc, argv);
-        else if (strcmp(argv[0], "tee") == 0)
-            doTee(argc, argv);
-        else if (strcmp(argv[0], "cat") == 0)
-            doCat(argc, argv);
-        else if (strcmp(argv[0], "cp") == 0)
-            doCp(argc, argv);
-        else if (strcmp(argv[0], "cd") == 0)
-            doCd(argc, argv);
-        else if (strcmp(argv[0], "pwd") == 0)
-            doPwd(argc, argv);
-        else if (strcmp(argv[0], "exit") == 0 || strcmp(argv[0], "quit") == 0)
-            break;
-        else
-            cerr << "Error: Command " << argv[0] << " not found" << endl;
+        doPipe(argc, argv);
         cout << gTerm.strout;
     }
 }
