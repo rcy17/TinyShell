@@ -209,8 +209,8 @@ int parseNonNegativeInteger(const char *s)
     int number = 0;
     char *p = const_cast<char *>(s);
     while (*p && '0' <= *p && *p <= '9')
-        number = number * 10 + *p - '0';
-    if (!*p)
+        number = number * 10 + *p++ - '0';
+    if (*p)
         return -1;
     return number;
 }

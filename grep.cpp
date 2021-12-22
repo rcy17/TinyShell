@@ -99,9 +99,8 @@ void safeNCat(char *dest, const char *src, int n)
 
 void printFilename(const char *filename, bool match)
 {
-
     strcat(gTerm.strout, COLOR_MAGENTA);
-    strcat(gTerm.strout, filename);
+    strcat(gTerm.strout, strcmp(filename, "-") == 0 ? "(standard input)" : filename);
     strcat(gTerm.strout, COLOR_CYAN);
     strcat(gTerm.strout, match ? ":" : "-");
     strcat(gTerm.strout, COLOR_NONE);
@@ -158,9 +157,8 @@ void grepLines(const char *filename, char *pLines[], int lines, const char *patt
                 options->status = 2;
             continue;
         }
-        if (options->status == 2)
+        if (options->status == 2 && (options->afterContext || options->beforeContext))
         {
-
             strcat(gTerm.strout, COLOR_CYAN);
             strcat(gTerm.strout, "--");
             strcat(gTerm.strout, COLOR_NONE);
@@ -191,6 +189,7 @@ void grepLines(const char *filename, char *pLines[], int lines, const char *patt
             strcat(gTerm.strout, "\n");
         }
     }
+    options->status = 2;
 }
 
 void patternReduce(const char *pattern, char *newPattern)

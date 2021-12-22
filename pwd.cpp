@@ -22,5 +22,5 @@ void doPwd(int argc, char *argv[])
     if (argc > 1)
         printHelp();
     strcpy(gTerm.strout, gTerm.wdir);
-    strcpy(gTerm.strout, "\n");
+    strcat(gTerm.strout, "\n");
 }
