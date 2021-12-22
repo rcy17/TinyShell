@@ -34,6 +34,7 @@ void doCd(int argc, char *argv[])
     if (!pathReduce(target))
     {
         cerr << "Error: can't cd to " << argv[1] << " which is outside the root" << endl;
+        gTerm.error = true;
         return;
     }
     strcpy(gTerm.wdir, target);

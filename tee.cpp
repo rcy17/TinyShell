@@ -10,7 +10,7 @@ using namespace std;
 
 static void printHelp()
 {
-    strcat(gTerm.strout, "Usage: tee [--help] [-a] [FILE [FILE ...]]\n");
+    strcat(gTerm.strout, "Usage: tee [OPTION] [FILE]...\n");
     strcat(gTerm.strout, "  --help show this help and exit\n");
     strcat(gTerm.strout, "  -a append to the given FILEs, do not overwrite\n");
 }
@@ -18,7 +18,7 @@ static void printHelp()
 void doTee(int argc, char *argv[])
 {
     int append = 0;
-    char filenames[16][1024];
+    char filenames[MAXARGS][MAXLINE];
     int files = 0;
     for (int i = 1; i < argc; i++)
     {

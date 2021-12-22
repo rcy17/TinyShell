@@ -56,12 +56,15 @@ void doPipe(int argc, char *argv[])
                 break;
             case -1:
                 cerr << "Error: Command " << argv[start] << " not found" << endl;
+                gTerm.error = true;
                 break;
             case -2:
-                cerr << "Error: Command expected between | and |" << endl;
+                cerr << "Error: Command expected after |" << endl;
+                gTerm.error = true;
                 break;
             }
-            if (code)
+            // If command parsing or command execution failed, stop the pipe
+            if (code || gTerm.error)
                 break;
             start = i + 1;
         }

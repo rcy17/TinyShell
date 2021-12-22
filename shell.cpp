@@ -7,22 +7,23 @@ using namespace std;
 #include "banner.h"
 #include "color.h"
 #include "commands.h"
+#include "utils.h"
 
 Terminal gTerm;
 
 void welcome()
 {
-    cout << COLOR_CYAN << banner << COLOR_NONE << endl;
-    cout << COLOR_YELLOW << "Welcome to TinyShell!" << COLOR_NONE << endl;
+    cout << COLOR_BRIGHT_CYAN << banner << COLOR_NONE << endl;
+    cout << COLOR_BRIGHT_YELLOW << "Welcome to TinyShell!" << COLOR_NONE << endl;
 }
 
 void init()
 {
-    cout << COLOR_MAGENTA << "Machine Name: " << COLOR_NONE;
+    cout << COLOR_BRIGHT_MAGENTA << "Machine Name: " << COLOR_NONE;
     cin >> gTerm.mach;
-    cout << COLOR_MAGENTA << "Root Directory: " << COLOR_NONE;
+    cout << COLOR_BRIGHT_MAGENTA << "Root Directory: " << COLOR_NONE;
     cin >> gTerm.root;
-    cout << COLOR_MAGENTA << "Login: " << COLOR_NONE;
+    cout << COLOR_BRIGHT_MAGENTA << "Login: " << COLOR_NONE;
     cin >> gTerm.user;
     gTerm.strin[0] = '\0';
     gTerm.strout[0] = '\0';
@@ -31,17 +32,17 @@ void init()
 
 void bye()
 {
-    cout << COLOR_YELLOW << "Thanks for using TinyShell!" << COLOR_NONE << endl;
+    cout << COLOR_BRIGHT_YELLOW << "Thanks for using TinyShell!" << COLOR_NONE << endl;
 }
 
 void printPrefix()
 {
-    cout << COLOR_GREEN << gTerm.user << "@" << gTerm.mach << COLOR_NONE << ":" << COLOR_BLUE << gTerm.wdir << COLOR_NONE << "$ ";
+    cout << COLOR_BRIGHT_GREEN << gTerm.user << "@" << gTerm.mach << COLOR_NONE << ":" << COLOR_BRIGHT_BLUE << gTerm.wdir << COLOR_NONE << "$ ";
 }
 
 void run()
 {
-    static char *argv[MAXARGV];
+    static char *argv[MAXARGS];
     char line[MAXLINE] = "";
     int argc;
     // Read the '\n' after inputting user
@@ -56,13 +57,10 @@ void run()
         if (argc == 0)
             continue;
         doPipe(argc, argv);
-        cout << gTerm.strout;
+        if (!gTerm.error)
+            cout << gTerm.strout;
+        gTerm.error = false;
     }
-}
-
-bool isSpace(char c)
-{
-    return c == ' ' || c == '\t' || c == '\0';
 }
 
 int splitArgs(char *line, char *argv[])

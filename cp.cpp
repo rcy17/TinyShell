@@ -9,18 +9,10 @@ using namespace std;
 
 void printHelp()
 {
-    strcat(gTerm.strout, "Usage: copy [--help] [-n] SOURCE DEST\n");
+    strcat(gTerm.strout, "Usage: copy [OPTION] SOURCE DEST\n");
+    strcat(gTerm.strout, "OPTION:\n");
     strcat(gTerm.strout, "  --help show this help and exit\n");
     strcat(gTerm.strout, "  -n do not overwrite an existing file\n");
-}
-
-bool fileExists(const char *file)
-{
-    ifstream fin(file);
-    if (!fin.is_open())
-        return false;
-    fin.close();
-    return true;
 }
 
 void copyFileToStrout(const char *src)
