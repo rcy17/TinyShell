@@ -4,6 +4,7 @@ bool isAlpha(char c);
 bool isSpecial(char c);
 bool isLineEnd(char c);
 bool isSpace(char c);
+bool isWhiteChar(char c);
 bool isFilename(const char *filename);
 
 char toLower(char c);

@@ -1,6 +1,7 @@
 #include <cstring>
 #include <fstream>
 #include <cassert>
+#include <iostream>
 
 using namespace std;
 
@@ -16,7 +17,7 @@ struct DiffOptions
     bool brief;
     bool ignoreAllSpace;
     bool ignoreMatchingLines;
-    char parttern[MAXLINE];
+    char pattern[MAXLINE];
 };
 
 struct Operation
@@ -44,7 +45,7 @@ bool linesDiff(const char *a, const char *b, DiffOptions *options)
 {
     char *pa = const_cast<char *>(a);
     char *pb = const_cast<char *>(b);
-    while (!isLineEnd(*pa) || !isLineEnd(*pb))
+    while (*pa || *pb)
     {
         if (*pa == *pb)
         {
@@ -76,24 +77,37 @@ bool linesDiff(const char *a, const char *b, DiffOptions *options)
             }
             if (options->ignoreSpaceChange)
             {
-                if (isLineEnd(*pa) && isSpace(*pb))
+                if (isLineEnd(*pa) && isWhiteChar(*pb))
                 {
                     pb++;
                     continue;
                 }
-                if (isLineEnd(*pb) && isSpace(*pb))
+                if (isLineEnd(*pb) && isWhiteChar(*pa))
                 {
                     pa++;
                     continue;
                 }
-                if (isSpace(*pa) && b < pb && isSpace(pb[-1]))
+                if (isWhiteChar(*pa) && b < pb && isWhiteChar(pb[-1]))
                 {
                     pb++;
                     continue;
                 }
-                if (isSpace(*pb) && a < pa && isSpace(pa[-1]))
+                if (isWhiteChar(*pb) && a < pa && isWhiteChar(pa[-1]))
                 {
                     pa++;
+                    continue;
+                }
+            }
+            if (options->ignoreAllSpace)
+            {
+                if (isWhiteChar(*pa))
+                {
+                    pa++;
+                    continue;
+                }
+                if (isWhiteChar(*pb))
+                {
+                    pb++;
                     continue;
                 }
             }
@@ -122,19 +136,20 @@ bool readFileAll(const char *filename, char *buffer)
 bool compareLines(char *pLines1[], int lines1, char *pLines2[], int lines2, DiffOptions *options)
 {
     static int dp[MAXLINES + 1][MAXLINES + 1];
-    for (int i = 0; i < lines1; i++)
+    for (int i = 0; i <= lines1; i++)
+        dp[i][0] = i;
+    for (int j = 1; j <= lines2; j++)
+        dp[0][j] = j;
+    for (int i = 1; i <= lines1; i++)
     {
-        for (int j = 0; j < lines2; j++)
+        for (int j = 1; j <= lines2; j++)
         {
-            if (linesDiff(pLines1[i], pLines2[j], options))
+            // Notice that pLines1(2) counts from 0
+            if (linesDiff(pLines1[i - 1], pLines2[j - 1], options))
             {
-                dp[i][j] = lines1 + lines2;
-                if (i)
-                    dp[i][j] = min(dp[i][j], dp[i - 1][j] + 1);
-                if (i)
-                    dp[i][j] = min(dp[i][j], dp[i - 1][j] + 1);
-                if (i && j)
-                    dp[i][j] = min(dp[i][j], dp[i - 1][j - 1] + 1);
+                dp[i][j] = min(dp[i][j - 1] + 1, dp[i - 1][j] + 1);
+                // Try use only add and delete
+                // dp[i][j] = min(dp[i][j], dp[i - 1][j - 1] + 1);
             }
             else
             {
@@ -142,37 +157,93 @@ bool compareLines(char *pLines1[], int lines1, char *pLines2[], int lines2, Diff
             }
         }
     }
-    if (!dp[lines1 - 1][lines2 - 1])
+    if (!dp[lines1][lines2])
         return false;
     int p = 0;
     int i = lines1, j = lines2;
     Operation ops[MAXLINES * 2];
     int count = 0;
-    while (i && j)
+    while (i || j)
     {
-        if (i && j && dp[i - 1][j - 1] == dp[i][j])
+        if (j && dp[i][j - 1] + 1 == dp[i][j])
         {
-            i--, j--;
-        }
-        else if (i && j && dp[i - 1][j - 1] + 1 == dp[i][j])
-        {
-            i--, j--;
-            ops[count++] = {0, i, j};
+            ops[count++] = {1, i, j};
+            j--;
         }
         else if (i && dp[i - 1][j] + 1 == dp[i][j])
         {
+            ops[count++] = {-1, i, j};
             i--;
-            ops[count++] = {1, i};
         }
-        else if (j && dp[i][j - 1] + 1 == dp[i][j])
+        // Try use only add and delete
+        /*else if (i && j && dp[i - 1][j - 1] + 1 == dp[i][j])
         {
-            j--;
-            ops[count++] = {-1, j};
+            i--, j--;
+            ops[count++] = {0, i, j};
+        }*/
+        // Take this judge in the end to make more continoues operations
+        else if (i && j && dp[i - 1][j - 1] == dp[i][j])
+        {
+            i--, j--;
         }
         else
         {
             assert(0);
         }
+    }
+    int last = count - 1;
+    for (int i = last - 1; i >= -1; i--)
+    {
+        // Use -1 to make a grace end
+        // If operations run out or types are different or operations are not continous, then the block ends
+        if (i < 0 || ops[i].type != ops[last].type ||
+            (ops[i].line1 != ops[last].line1 && ops[i].line2 != ops[last].line2))
+        {
+            // block (i, last]
+            bool ignore = false;
+            bool leftOperation = ops[last].type == -1;
+            if (options->ignoreBlankLines)
+            {
+                bool allMatch = true;
+                for (int j = last; j > i; j--)
+                    allMatch = allMatch && (leftOperation ? isLineEnd(pLines1[ops[j].line1 - 1][0]) : isLineEnd(pLines2[ops[j].line2 - 1][0]));
+                ignore = allMatch;
+            }
+            if (options->ignoreMatchingLines)
+            {
+                bool allMatch = true;
+                for (int j = last; j > i; j--)
+                    allMatch = allMatch && strstr(leftOperation ? pLines1[ops[j].line1 - 1] : pLines2[ops[j].line2 - 1], options->pattern) != NULL;
+                ignore = ignore || allMatch;
+            }
+            if (!ignore)
+            {
+                char buffer[MAXLINE];
+                if (last - i > 1)
+                {
+                    if (leftOperation)
+                        sprintf(buffer, "%d,%dd%d\n", ops[last].line1, ops[i + 1].line1, ops[last].line2);
+                    else
+                        sprintf(buffer, "%da%d,%d\n", ops[last].line1, ops[last].line2, ops[i + 1].line2);
+                }
+                else
+                {
+                    sprintf(buffer, "%d%c%d\n", ops[last].line1, leftOperation ? 'd' : 'a', ops[last].line2);
+                }
+                strcat(gTerm.strout, buffer);
+                for (int j = last; j > i; j--)
+                {
+                    char *line = leftOperation ? pLines1[ops[j].line1 - 1] : pLines2[ops[j].line2 - 1];
+                    strcat(gTerm.strout, leftOperation ? "< " : "> ");
+                    strcat(gTerm.strout, line);
+                    if (!*line || line[strlen(line) - 1] != '\n')
+                        strcat(gTerm.strout, "\n\\ No newline at end of file\n");
+                }
+            }
+            last = i;
+        }
+        if (i < 0)
+            break;
     }
     return true;
 }
@@ -208,7 +279,20 @@ bool compareFiles(const char *a, const char *b, DiffOptions *options)
         readFileAll(b, temp);
         lines2 = splitLines(temp, data2, pLines2);
     }
-    return compareLines(pLines1, lines1, pLines2, lines2, options);
+    compareLines(pLines1, lines1, pLines2, lines2, options);
+    if (options->brief)
+    {
+        // Trick: ff we got anything in strout, then there should be some differences
+        if (gTerm.strout[0])
+        {
+            sprintf(gTerm.strout, "Files %s and %s differ\n", a, b);
+        }
+        else
+        {
+            gTerm.strout[0] = '\0';
+        }
+    }
+    return true;
 }
 
 void doDiff(int argc, char *argv[])
@@ -243,7 +327,7 @@ void doDiff(int argc, char *argv[])
         else if (strncmp(argv[i], "-I", 2) == 0)
         {
             options.ignoreMatchingLines = true;
-            strcpy(options.parttern, argv[i] + 2);
+            strcpy(options.pattern, argv[i] + 2);
         }
         else
         {

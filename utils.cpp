@@ -34,6 +34,11 @@ bool isSpace(char c)
     return c == ' ' || c == '\0';
 }
 
+bool isWhiteChar(char c)
+{
+    return c == ' ' || c == '\n';
+}
+
 bool isFilename(const char *filename)
 {
     for (int i = 0; i < strlen(filename); i++)
@@ -186,8 +191,8 @@ int parseNonNegativeInteger(const char *s)
     int number = 0;
     char *p = const_cast<char *>(s);
     while (*p && '0' <= *p && *p <= '9')
-        number = number * 10 + *p++ - '0';
-    if (*p)
+        number = number * 10 + *p - '0';
+    if (!*p)
         return -1;
     return number;
 }
